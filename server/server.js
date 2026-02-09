@@ -13,25 +13,29 @@ app.use(express.json());         // Parse JSON bodies
 
 // --- ENV Variables ---
 const PORT = process.env.PORT || 5001;
-const MONGO_URI = process.env.MONGO_URI;
+const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://siddhant22310772:LUIGyjKZn3sVN6lz@cluster0.xmqrsxl.mongodb.net/?appName=Cluster0";
 
 // --- DB Connect ---
-if (!MONGO_URI) {
-  console.error("❌ MONGO_URI not found in .env");
-  console.log("💡 Using demo mode without database...");
-} else {
-  mongoose
-    .connect(MONGO_URI)
-    .then(() => console.log("✅ MongoDB connected successfully!"))
-    .catch((err) => {
-      console.error("❌ MongoDB connection error:", err.message);
-      console.log("💡 Continuing in demo mode without database...");
-    });
-}
+console.log("Connecting to MongoDB...",MONGO_URI);
+// if (!MONGO_URI) {
+//   console.error("MONGO_URI not found in .env");
+//   console.log("💡 Using demo mode without database...");
+// } else {
+  const dbConnect = async () =>{
+    console.log("Attempting to connect to MongoDB...");
+    await mongoose
+      .connect("mongodb+srv://siddhant22310772:Demo123@cluster0.xmqrsxl.mongodb.net/?appName=Cluster0")
+      .then(() => console.log("MongoDB connected successfully!"))
+      .catch((err) => {
+        console.error(" MongoDB connection error:", err.message);
+        console.log(" Continuing in demo mode without database...");
+      });
+  }
+// }
 
 // --- Health check route ---
 app.get("/", (_req, res) => {
-  res.send("🚀 DealFinder Backend is running & connected to MongoDB!");
+  res.send("DealFinder Backend is running & connected to MongoDB!");
 });
 
 app.get("/health", (_req, res) => {
@@ -55,5 +59,6 @@ app.use('/api/ai', require('./routes/ai'));
 
 // --- Start server ---
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+ dbConnect();
+  console.log(`Server running on http://localhost:${PORT}`);
 });

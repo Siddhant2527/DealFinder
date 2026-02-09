@@ -111,7 +111,7 @@ const ResultsTable = ({ results, bestDeal }) => {
                     </a>
                     <button 
                       onClick={() => addToCart(item)} 
-                      className="px-4 py-3 text-sm font-semibold text-indigo-600 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl hover:from-indigo-100 hover:to-purple-100 transition-all duration-300 shadow-md hover:shadow-lg"
+                      className="px-4 py-3 text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg"
                     >
                       <ShoppingCart size={18} />
                     </button>

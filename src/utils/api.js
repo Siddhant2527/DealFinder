@@ -357,12 +357,14 @@ export const mockAuth = async (username, password, isLogin = true) => {
 
 export const searchProductsAPI = async (query) => {
     try {
-        const response = await fetch(`http://localhost:5000/api/products/search?query=${encodeURIComponent(query)}`);
+        // Use the new scrape endpoint on port 5000 for real-time data
+        const response = await fetch(`http://localhost:5000/api/products/scrape?query=${encodeURIComponent(query)}`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        return Array.isArray(data) ? data : [];
+        // Return the results array from the scrape endpoint
+        return Array.isArray(data.results) ? data.results : [];
     } catch (error) {
         console.error("Failed to fetch products:", error);
         // Return demo data when backend is not available

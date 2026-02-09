@@ -1,35 +1,39 @@
 // server/controllers/productController.js
 const mongoose = require('mongoose');
 const Product = require('../models/Product');
+const { scrapeFlipkart, scrapeAmazon, getBestDeal } = require('../utils/scrapeHelpers');
 
-// Sample results for demo mode when MongoDB is not connected
+// Sample results for demo mode when scraping returns empty or MongoDB is not connected
 const sampleResults = {
     'iphone': [
-        { id: 'iphone1', platform: 'Amazon', price: 59999, delivery: 2, rating: 4.5, logo: '🛒', link: 'https://www.amazon.in/Apple-iPhone-13-128GB-Pink/dp/B09G9HD6PD/', name: 'iPhone 13 128GB', image: 'https://m.media-amazon.com/images/I/71GLMJ7TQiL._AC_UY218_.jpg' },
-        { id: 'iphone2', platform: 'Flipkart', price: 57999, delivery: 3, rating: 4.3, logo: '🛒', link: 'https://www.flipkart.com/apple-iphone-13-pink-128-gb/p/itm6e30c6ee045d2', name: 'iPhone 13 128GB', image: 'https://rukminim1.flixcart.com/image/312/312/xif0q/mobile/3/5/l/-original-imagfhu75eupxyft.jpeg' },
-        { id: 'iphone3', platform: 'Reliance Digital', price: 60999, delivery: 1, rating: 4.6, logo: '🛒', link: 'https://www.reliancedigital.in/apple-iphone-13-128gb-pink/p/491997555', name: 'iPhone 13 128GB', image: 'https://www.reliancedigital.in/medias/Apple-iPhone-13-128GB-Pink-491997555-1.jpg' },
-        { id: 'iphone4', platform: 'Croma', price: 58999, delivery: 4, rating: 4.2, logo: '🛒', link: 'https://www.croma.com/apple-iphone-13-128gb-pink/p/241145', name: 'iPhone 13 128GB', image: 'https://www.croma.com/media/catalog/product/cache/1/image/9df78eab33525d08d6e5fb8d27136e95/a/p/apple-iphone-13-128gb-pink_1.png' },
-        { id: 'iphone5', platform: 'Apple Store', price: 62999, delivery: 1, rating: 4.8, logo: '🛒', link: 'https://www.apple.com/in/iphone-13/', name: 'iPhone 13 128GB', image: 'https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/iphone-13-pink-select-2021?wid=470&hei=556&fmt=jpeg&qlt=95&.v=1645572388068' },
-        { id: 'iphone6', platform: 'Amazon', price: 89999, delivery: 2, rating: 4.7, logo: '🛒', link: 'https://www.amazon.in/Apple-iPhone-14-Pro-128GB/dp/B0BDJ6ZMYM/', name: 'iPhone 14 Pro 128GB', image: 'https://m.media-amazon.com/images/I/71yzJoE7WlL._AC_UY218_.jpg' },
-        { id: 'iphone7', platform: 'Flipkart', price: 87999, delivery: 3, rating: 4.6, logo: '🛒', link: 'https://www.flipkart.com/apple-iphone-14-pro-deep-purple-128-gb/p/itm8c9c5c5c5c5c5', name: 'iPhone 14 Pro 128GB', image: 'https://rukminim1.flixcart.com/image/312/312/xif0q/mobile/3/5/l/-original-imagfhu75eupxyft.jpeg' },
+        { id: 'iphone1', platform: 'Amazon', price: 52999, delivery: 2, rating: 4.5, logo: '🛒', link: 'https://www.amazon.com/Apple-iPhone-13-128GB-Midnight/dp/B09LNW3CY2/ref=sr_1_1?crid=3JOZQWBKH7QQ9&dib=eyJ2IjoiMSJ9.J7watNo42r8f2OldjXl0Ioy6Sq-kzyLs75MnnaiC35sBSa4iBsZtM4oCr4JfB4btKvDTG-mnvB1CxD3GJDtE_ALl2IXHO6ZgoUAUEcBM1BUr0yneAiIVXxYMPAN-dFKuBccZMRpo7BTdiVj1uX9Eh0Btn1e-xMXzh98ODTSDL67cPFltuOyDULnmLdyymuEEdtrdUOIdHFqLY-cCW0J8NgNgmydwgmFhyNsMcomvkBE.wXhEu8Elj6G8jtAdTEeyWjnl6FBIack0bDhw7k3b1J4&dib_tag=se&keywords=i%2Bphone%2B13&qid=1763702639&sprefix=%2Caps%2C258&sr=8-1&th=1', name: 'iPhone 13 128GB', image: 'https://m.media-amazon.com/images/I/71GLMJ7TQiL._AC_UY327_FMwebp_QL65_.jpg' },
+        { id: 'iphone2', platform: 'Flipkart', price: 41999, delivery: 3, rating: 4.3, logo: '🛒', link: 'https://www.flipkart.com/apple-iphone-13-blue-128-gb/p/itm6e30c6ee045d2', name: 'iPhone 13 128GB', image: 'https://d1eh9yux7w8iql.cloudfront.net/product_images/512310_8dff631d-c28c-4e85-af59-7cb9c3439ffa.jpg' },
+        { id: 'iphone3', platform: 'Croma', price: 51999, delivery: 4, rating: 4.2, logo: '🛒', link: 'https://www.croma.com/apple-iphone-15-128gb-blue-/p/316879', name: 'iPhone 13 128GB', image: 'https://media.croma.com/image/upload/v1662443349/Croma%20Assets/Communication/Mobiles/Images/243463_0_onc1ut.png' },
+        { id: 'iphone4', platform: 'Apple Store', price: 59900, delivery: 1, rating: 4.8, logo: '🛒', link: 'https://www.apple.com/in/iphone-13/', name: 'iPhone 13 128GB', image: 'https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/iphone-13-blue-select-2021?wid=470&hei=556&fmt=jpeg&qlt=95&.v=1645572388068' },
+        { id: 'iphone5', platform: 'Amazon', price: 69999, delivery: 2, rating: 4.7, logo: '🛒', link: 'https://www.amazon.in/Apple-iPhone-14-128GB-Blue/dp/B0BDJ6ZMYM/', name: 'iPhone 14 128GB', image: 'https://m.media-amazon.com/images/I/61cKjmcMHL._AC_UY327_FMwebp_QL65_.jpg' },
+        { id: 'iphone6', platform: 'Flipkart', price: 46999, delivery: 3, rating: 4.6, logo: '🛒', link: 'https://www.flipkart.com/apple-iphone-14-starlight-128-gb/p/itm3485a56f6e676?pid=MOBGHWFHABH3G73H&lid=LSTMOBGHWFHABH3G73HHJP0CG&marketplace=FLIPKART&q=i+phone+14&store=tyy%2F4io&srno=s_1_1&otracker=AS_Query_OrganicAutoSuggest_3_9_na_na_ps&otracker1=AS_Query_OrganicAutoSuggest_3_9_na_na_ps&fm=search-autosuggest&iid=c790c30a-9df4-416a-ad83-dd42a020008a.MOBGHWFHABH3G73H.SEARCH&ppt=sp&ppn=sp&ssid=8lu4sfhkqo0000001763702812954&qH=f98a4cf733a9a474', name: 'iPhone 14 128GB', image: 'https://rukminim1.flixcart.com/image/612/612/xif0q/mobile/k/v/8/-original-imaghxemc3wbxgcy.jpeg' },
+        { id: 'iphone7', platform: 'Amazon', price: 127999, delivery: 2, rating: 4.8, logo: '🛒', link: 'https://www.amazon.in/Apple-iPhone-15-Pro-128GB-Natural-Titanium/dp/B0CHX1W1XY/', name: 'iPhone 15 Pro 128GB', image: 'https://m.media-amazon.com/images/I/81CgtJni5VL._AC_UY327_FMwebp_QL65_.jpg' },
+        { id: 'iphone8', platform: 'Flipkart', price: 124999, delivery: 3, rating: 4.7, logo: '🛒', link: 'https://www.flipkart.com/apple-iphone-15-pro-natural-titanium-128-gb/p/itm8c9c5c5c5c5c5', name: 'iPhone 15 Pro 128GB', image: 'https://rukminim1.flixcart.com/image/612/612/xif0q/mobile/5/h/8/-original-imagtc3kfbxqs9nq.jpeg' },
     ],
     'samsung': [
-        { id: 'samsung1', platform: 'Amazon', price: 45999, delivery: 2, rating: 4.4, logo: '🛒', link: 'https://www.amazon.in/Samsung-Galaxy-S21-FE-5G/dp/B09V3QK8YF/', name: 'Samsung Galaxy S21 FE', image: 'https://m.media-amazon.com/images/I/71TPda7cwUL._AC_UY218_.jpg' },
-        { id: 'samsung2', platform: 'Flipkart', price: 43999, delivery: 3, rating: 4.1, logo: '🛒', link: 'https://www.flipkart.com/samsung-galaxy-s21-fe-5g-lavender-128-gb/p/itm8c9c5c5c5c5c5', name: 'Samsung Galaxy S21 FE', image: 'https://rukminim1.flixcart.com/image/312/312/xif0q/mobile/3/5/l/-original-imagfhu75eupxyft.jpeg' },
-        { id: 'samsung3', platform: 'Samsung Store', price: 46999, delivery: 1, rating: 4.7, logo: '🛒', link: 'https://www.samsung.com/in/smartphones/galaxy-s21-fe-5g/', name: 'Samsung Galaxy S21 FE', image: 'https://images.samsung.com/is/image/samsung/p6pim/in/sm-g990elgdin/gallery/in-galaxy-s21-fe-5g-sm-g990elgdin-thumb-530968926' },
-        { id: 'samsung4', platform: 'Amazon', price: 69999, delivery: 2, rating: 4.6, logo: '🛒', link: 'https://www.amazon.in/Samsung-Galaxy-S23-Ultra/dp/B0BT7QK8YF/', name: 'Samsung Galaxy S23 Ultra', image: 'https://m.media-amazon.com/images/I/71TPda7cwUL._AC_UY218_.jpg' },
-        { id: 'samsung5', platform: 'Flipkart', price: 67999, delivery: 3, rating: 4.5, logo: '🛒', link: 'https://www.flipkart.com/samsung-galaxy-s23-ultra-256-gb/p/itm8c9c5c5c5c5c5', name: 'Samsung Galaxy S23 Ultra', image: 'https://rukminim1.flixcart.com/image/312/312/xif0q/mobile/3/5/l/-original-imagfhu75eupxyft.jpeg' },
-        { id: 'samsung6', platform: 'Samsung Store', price: 71999, delivery: 1, rating: 4.8, logo: '🛒', link: 'https://www.samsung.com/in/smartphones/galaxy-s23-ultra/', name: 'Samsung Galaxy S23 Ultra', image: 'https://images.samsung.com/is/image/samsung/p6pim/in/sm-s918bzgdin/gallery/in-galaxy-s23-ultra-sm-s918bzgdin-thumb-530968926' },
+        { id: 'samsung1', platform: 'Amazon', price: 74999, delivery: 2, rating: 4.6, logo: '🛒', link: 'https://www.amazon.in/Samsung-Galaxy-S23-5G-Phantom/dp/B0BYHZB7VW/', name: 'Samsung Galaxy S23 5G', image: 'https://m.media-amazon.com/images/I/71L8Y-oO6TL._AC_UY327_FMwebp_QL65_.jpg' },
+        { id: 'samsung2', platform: 'Flipkart', price: 72999, delivery: 3, rating: 4.4, logo: '🛒', link: 'https://www.flipkart.com/samsung-galaxy-s23-phantom-black-128-gb/p/itm4c0f6c6c6c6c6', name: 'Samsung Galaxy S23 5G', image: 'https://rukminim1.flixcart.com/image/612/612/xif0q/mobile/y/j/5/-original-imagmg6gz3bdsyhv.jpeg' },
+        { id: 'samsung3', platform: 'Samsung Store', price: 79999, delivery: 1, rating: 4.8, logo: '🛒', link: 'https://www.samsung.com/in/smartphones/galaxy-s23/', name: 'Samsung Galaxy S23 5G', image: 'https://images.samsung.com/is/image/samsung/p6pim/in/2202/gallery/in-galaxy-s23-s911-sm-s911bzgcins-534977426' },
+        { id: 'samsung4', platform: 'Amazon', price: 50599, delivery: 2, rating: 4.5, logo: '🛒', link: 'https://www.amazon.in/Samsung-Galaxy-S21-FE-5G/dp/B09QH6DW1K/', name: 'Samsung Galaxy S21 FE 5G', image: 'https://m.media-amazon.com/images/I/71jGEnOqWVL._AC_UY327_FMwebp_QL65_.jpg' },
+        { id: 'samsung5', platform: 'Flipkart', price: 47999, delivery: 3, rating: 4.2, logo: '🛒', link: 'https://www.flipkart.com/samsung-galaxy-s21-fe-5g-olive-128-gb/p/itm5e8e8e8e8e8e8', name: 'Samsung Galaxy S21 FE 5G', image: 'https://rukminim1.flixcart.com/image/612/612/xif0q/mobile/z/i/7/-original-imagbzxyycdxqy8h.jpeg' },
+        { id: 'samsung6', platform: 'Amazon', price: 54999, delivery: 2, rating: 4.6, logo: '🛒', link: 'https://www.amazon.in/Samsung-Galaxy-S22-5G-Phantom/dp/B09V3QK8YF/', name: 'Samsung Galaxy S22 5G', image: 'https://m.media-amazon.com/images/I/71TPda7cwUL._AC_UY327_FMwebp_QL65_.jpg' },
+        { id: 'samsung7', platform: 'Flipkart', price: 52999, delivery: 3, rating: 4.4, logo: '🛒', link: 'https://www.flipkart.com/samsung-galaxy-s22-phantom-black-128-gb/p/itm8c9c5c5c5c5c5', name: 'Samsung Galaxy S22 5G', image: 'https://rukminim1.flixcart.com/image/612/612/xif0q/mobile/s/a/m/samsung-galaxy-s22-original-imagfhu75eupxyft.jpeg' },
+        { id: 'samsung8', platform: 'Croma', price: 18999, delivery: 4, rating: 4.1, logo: '🛒', link: 'https://www.croma.com/samsung-galaxy-m54-5g-128gb-silver/p/243569', name: 'Samsung Galaxy M54 5G', image: 'https://media.croma.com/image/upload/v1662443349/Croma%20Assets/Communication/Mobiles/Images/243569_0_onc1ut.png' },
     ],
     'laptop': [
-        { id: 'laptop1', platform: 'Amazon', price: 89999, delivery: 3, rating: 4.6, logo: '🛒', link: 'https://www.amazon.in/Dell-Inspiron-3511-15-6-inch-i5-1135G7/dp/B08N5WRWNW/', name: 'Dell Inspiron 15', image: 'https://m.media-amazon.com/images/I/71TPda7cwUL._AC_UY218_.jpg' },
-        { id: 'laptop2', platform: 'Flipkart', price: 87999, delivery: 4, rating: 4.3, logo: '🛒', link: 'https://www.flipkart.com/dell-inspiron-3511-core-i5-11th-gen-8-gb-512-gb-ssd-windows-10-home-15-6-inch-laptop/p/itm8c9c5c5c5c5c5', name: 'Dell Inspiron 15', image: 'https://rukminim1.flixcart.com/image/312/312/xif0q/computer/8/8/8/inspiron-3511-dell-original-imagfhu75eupxyft.jpeg' },
-        { id: 'laptop3', platform: 'Dell Store', price: 91999, delivery: 2, rating: 4.5, logo: '🛒', link: 'https://www.dell.com/en-in/shop/laptops-2-in-1-pcs/inspiron-15-laptop/spd/inspiron-15-3511-laptop', name: 'Dell Inspiron 15', image: 'https://i.dell.com/is/image/DellContent/content/dam/ss2/product-images/dellwww/products/laptops-and-2-in-1s/inspiron/15-3511/media-gallery/in3511t-xnb-lf-gallery-1.psd?fmt=png-alpha&pscan=auto&scl=1&hei=402&wid=402&qlt=100,1&resMode=sharp2&size=402,402' },
-        { id: 'laptop4', platform: 'Amazon', price: 129999, delivery: 3, rating: 4.7, logo: '🛒', link: 'https://www.amazon.in/Apple-MacBook-Air-13-inch-256GB/dp/B08N5WRWNW/', name: 'MacBook Air M1', image: 'https://m.media-amazon.com/images/I/71TPda7cwUL._AC_UY218_.jpg' },
-        { id: 'laptop5', platform: 'Flipkart', price: 127999, delivery: 4, rating: 4.6, logo: '🛒', link: 'https://www.flipkart.com/apple-macbook-air-m1-8-gb-256-gb-ssd-mac-os-big-sur-mgn63hn-a/p/itm8c9c5c5c5c5c5', name: 'MacBook Air M1', image: 'https://rukminim1.flixcart.com/image/312/312/xif0q/computer/8/8/8/macbook-air-m1-apple-original-imagfhu75eupxyft.jpeg' },
-        { id: 'laptop6', platform: 'Apple Store', price: 131999, delivery: 2, rating: 4.8, logo: '🛒', link: 'https://www.apple.com/in/macbook-air/', name: 'MacBook Air M1', image: 'https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/macbook-air-space-gray-select-201810?wid=904&hei=840&fmt=jpeg&qlt=90&.v=1633027804000' },
-        { id: 'laptop7', platform: 'Amazon', price: 79999, delivery: 3, rating: 4.4, logo: '🛒', link: 'https://www.amazon.in/HP-Pavilion-15-6-inch-i5-1135G7/dp/B08N5WRWNW/', name: 'HP Pavilion 15', image: 'https://m.media-amazon.com/images/I/71TPda7cwUL._AC_UY218_.jpg' },
-        { id: 'laptop8', platform: 'Flipkart', price: 77999, delivery: 4, rating: 4.2, logo: '🛒', link: 'https://www.flipkart.com/hp-pavilion-15-core-i5-11th-gen-8-gb-512-gb-ssd-windows-10-home-15-6-inch-laptop/p/itm8c9c5c5c5c5c5', name: 'HP Pavilion 15', image: 'https://rukminim1.flixcart.com/image/312/312/xif0q/computer/8/8/8/pavilion-15-hp-original-imagfhu75eupxyft.jpeg' },
+        { id: 'laptop1', platform: 'Amazon', price: 58990, delivery: 3, rating: 4.6, logo: '🛒', link: 'https://www.amazon.in/Dell-Inspiron-3511-15-6-inch-i5-1135G7/dp/B08N5WRWNW/', name: 'Dell Inspiron 15 (i5/8GB/512GB SSD)', image: 'https://m.media-amazon.com/images/I/61QGMX+LeVL._AC_UY327_FMwebp_QL65_.jpg' },
+        { id: 'laptop2', platform: 'Flipkart', price: 57990, delivery: 4, rating: 4.3, logo: '🛒', link: 'https://www.flipkart.com/dell-inspiron-3511-core-i5-11th-gen-8-gb-512-gb-ssd-windows-11-home-15-6-inch-laptop/p/itm8c9c5c5c5c5c5', name: 'Dell Inspiron 15 (i5/8GB/512GB SSD)', image: 'https://rukminim1.flixcart.com/image/612/612/l5jxt3k0/computer/y/x/c/inspiron-15-3511-laptop-dell-original-imagg7v3rgecqzwy.jpeg' },
+        { id: 'laptop3', platform: 'HP Store', price: 62990, delivery: 2, rating: 4.5, logo: '🛒', link: 'https://www.hp.com/in-en/shop/laptops-tablets/hp-pavilion-laptop-15-eh2009tu.html', name: 'HP Pavilion 15 (Ryzen 5/8GB/512GB SSD)', image: 'https://i.dell.com/is/image/DellContent/content/dam/ss2/product-images/dell-client-products/notebooks/inspiron-notebooks/15-3511/media-gallery/notebook-inspiron-15-3511-ppdg-campaign-hero-504x350.jpg' },
+        { id: 'laptop4', platform: 'Amazon', price: 94990, delivery: 3, rating: 4.7, logo: '🛒', link: 'https://www.amazon.in/Apple-MacBook-Air-13-inch-256GB/dp/B08N5WRWNW/', name: 'MacBook Air M1 (8GB/256GB)', image: 'https://m.media-amazon.com/images/I/71vFKBpC+YL._AC_UY327_FMwebp_QL65_.jpg' },
+        { id: 'laptop5', platform: 'Flipkart', price: 92990, delivery: 4, rating: 4.6, logo: '🛒', link: 'https://www.flipkart.com/apple-macbook-air-m1-8-gb-256-gb-ssd-mac-os-big-sur-mgn63hn-a/p/itm8c9c5c5c5c5c5', name: 'MacBook Air M1 (8GB/256GB)', image: 'https://rukminim1.flixcart.com/image/612/612/kg8avm80/computer/f/3/n/apple-original-imafwge7gbhwfevf.jpeg' },
+        { id: 'laptop6', platform: 'Lenovo', price: 52990, delivery: 3, rating: 4.4, logo: '🛒', link: 'https://www.amazon.in/Lenovo-IdeaPad-3-15-6-inch-Laptop/dp/B08N5WRWNW/', name: 'Lenovo IdeaPad 3 (Ryzen 5/8GB/512GB SSD)', image: 'https://m.media-amazon.com/images/I/71TPda7cwUL._AC_UY218_.jpg' },
+        { id: 'laptop7', platform: 'Flipkart', price: 51990, delivery: 4, rating: 4.2, logo: '🛒', link: 'https://www.flipkart.com/lenovo-ideapad-3-ryzen-5-5500u-8-gb-512-gb-ssd-windows-11-home-15-6-inch-laptop/p/itm8c9c5c5c5c5c5', name: 'Lenovo IdeaPad 3 (Ryzen 5/8GB/512GB SSD)', image: 'https://rukminim1.flixcart.com/image/612/612/xif0q/computer/8/8/8/ideapad-3-lenovo-original-imagfhu75eupxyft.jpeg' },
+        { id: 'laptop8', platform: 'Amazon', price: 44990, delivery: 3, rating: 4.1, logo: '🛒', link: 'https://www.amazon.in/ASUS-VivoBook-15-15-6-inch-Laptop/dp/B08N5WRWNW/', name: 'ASUS VivoBook 15 (i3/8GB/512GB SSD)', image: 'https://m.media-amazon.com/images/I/71TPda7cwUL._AC_UY218_.jpg' },
     ],
     'tv': [
         { id: 'tv1', platform: 'Amazon', price: 29999, delivery: 2, rating: 4.4, logo: '🛒', link: 'https://www.amazon.in/LG-55-inch-Ultra-Smart-55UQ7500PSF/dp/B09V3QK8YF/', name: 'LG 55" Smart TV', image: 'https://m.media-amazon.com/images/I/71TPda7cwUL._AC_UY218_.jpg' },
@@ -83,66 +87,106 @@ const sampleResults = {
     ],
     'speaker': [
         { id: 'speaker1', platform: 'Amazon', price: 8999, delivery: 2, rating: 4.3, logo: '🛒', link: 'https://www.amazon.in/JBL-Boombox-2-Portable-Bluetooth-Speaker/dp/B07V4R3N9F/', name: 'JBL Boombox 2', image: 'https://m.media-amazon.com/images/I/71TPda7cwUL._AC_UY218_.jpg' },
-        { id: 'speaker2', platform: 'Flipkart', price: 8799, delivery: 3, rating: 4.1, logo: '🛒', link: 'https://www.flipkart.com/jbl-boombox-2-portable-bluetooth-speaker/p/itm8c9c5c5c5c5c5', name: 'JBL Boombox 2', image: 'https://rukminim1.flixcart.com/image/312/312/xif0q/speaker/j/b/l/jbl-boombox-2-original-imagfhu75eupxyft.jpeg' },
-        { id: 'speaker3', platform: 'JBL Store', price: 9199, delivery: 1, rating: 4.5, logo: '🛒', link: 'https://www.jbl.com/portable-speakers/BOOMBOX2.html', name: 'JBL Boombox 2', image: 'https://www.jbl.com/dw/image/v2/BFND_PRD/on/demandware.static/-/Sites-master-catalog/default/dw1a0c1e6a/images/J/BOOMBOX2_Product%20Image_Hero_001_x2.png' },
-        { id: 'speaker4', platform: 'Amazon', price: 19999, delivery: 2, rating: 4.6, logo: '🛒', link: 'https://www.amazon.in/Sony-SRS-XB43-Portable-Bluetooth-Speaker/dp/B07V4R3N9F/', name: 'Sony SRS-XB43', image: 'https://m.media-amazon.com/images/I/71TPda7cwUL._AC_UY218_.jpg' },
-        { id: 'speaker5', platform: 'Flipkart', price: 19799, delivery: 3, rating: 4.4, logo: '🛒', link: 'https://www.flipkart.com/sony-srs-xb43-portable-bluetooth-speaker/p/itm8c9c5c5c5c5c5', name: 'Sony SRS-XB43', image: 'https://rukminim1.flixcart.com/image/312/312/xif0q/speaker/s/o/n/sony-srs-xb43-original-imagfhu75eupxyft.jpeg' },
-        { id: 'speaker6', platform: 'Sony Store', price: 20199, delivery: 1, rating: 4.7, logo: '🛒', link: 'https://www.sony.in/audio/speakers/srs-xb43', name: 'Sony SRS-XB43', image: 'https://www.sony.in/image/5d02da5df552836db89418f5c5c5c5c5?fmt=png-alpha&wid=720&hei=720' },
+        { id: 'speaker2', platform: 'Flipkart', price: 8799, delivery: 3, rating: 4.1, logo: '🛒', link: 'https://www.flipkart.com/jbl-boombox-2-portable-bluetooth-speaker/p/itm8c9c5c5c5c5c5', name: 'JBL Boombox 2', image: 'https://rukminim1.flixcart.com/image/312/312/xif0q/speaker/h/p/k/jbl-boombox-2-original-imagfhu75eupxyft.jpeg' },
+        { id: 'speaker3', platform: 'JBL Store', price: 9199, delivery: 1, rating: 4.4, logo: '🛒', link: 'https://www.jbl.com/portable-speakers/boombox-2/', name: 'JBL Boombox 2', image: 'https://www.jbl.com/dw/image/v2/AAUJ_PRD/on/demandware.static/-/Sites-masterCatalog_Harman/default/dw5c9c5c5c5c5c5c5/JBL_Boombox_2_Hero_1.png' },
+        { id: 'speaker4', platform: 'Amazon', price: 14999, delivery: 2, rating: 4.5, logo: '🛒', link: 'https://www.amazon.in/Bose-SoundLink-Revolve-Bluetooth-Speaker/dp/B07V4R3N9F/', name: 'Bose SoundLink Revolve', image: 'https://m.media-amazon.com/images/I/71TPda7cwUL._AC_UY218_.jpg' },
+        { id: 'speaker5', platform: 'Flipkart', price: 14799, delivery: 3, rating: 4.3, logo: '🛒', link: 'https://www.flipkart.com/bose-soundlink-revolve-bluetooth-speaker/p/itm8c9c5c5c5c5c5', name: 'Bose SoundLink Revolve', image: 'https://rukminim1.flixcart.com/image/312/312/xif0q/speaker/r/e/v/bose-soundlink-revolve-original-imagfhu75eupxyft.jpeg' },
+        { id: 'speaker6', platform: 'Bose Store', price: 15199, delivery: 1, rating: 4.6, logo: '🛒', link: 'https://www.bose.com/speakers/portable-speakers/soundlink-revolve/', name: 'Bose SoundLink Revolve', image: 'https://assets.bose.com/content/dam/cloudassets/Bose_DAM/Web/consumer_electronics/global/products/speakers/soundlink_revolve/product_page/product_page_hero/SoundLink_Revolve_Hero.png' },
     ],
-    'accessories': [
-        { id: 'acc1', platform: 'Amazon', price: 1499, delivery: 1, rating: 4.2, logo: '🛒', link: 'https://www.amazon.in/Anker-PowerCore-10000mAh-Portable-Charger/dp/B01MZAX6W8/', name: 'Anker PowerCore 10000mAh', image: 'https://m.media-amazon.com/images/I/71TPda7cwUL._AC_UY218_.jpg' },
-        { id: 'acc2', platform: 'Flipkart', price: 1399, delivery: 2, rating: 4.0, logo: '🛒', link: 'https://www.flipkart.com/anker-powercore-10000mah-portable-charger/p/itm8c9c5c5c5c5c5', name: 'Anker PowerCore 10000mAh', image: 'https://rukminim1.flixcart.com/image/312/312/xif0q/power-bank/a/n/k/anker-powercore-10000mah-original-imagfhu75eupxyft.jpeg' },
-        { id: 'acc3', platform: 'Amazon', price: 2999, delivery: 1, rating: 4.4, logo: '🛒', link: 'https://www.amazon.in/Logitech-MX-Master-Wireless-Mouse/dp/B00TZR3WRM/', name: 'Logitech MX Master 3', image: 'https://m.media-amazon.com/images/I/71TPda7cwUL._AC_UY218_.jpg' },
-        { id: 'acc4', platform: 'Flipkart', price: 2799, delivery: 2, rating: 4.2, logo: '🛒', link: 'https://www.flipkart.com/logitech-mx-master-3-wireless-mouse/p/itm8c9c5c5c5c5c5', name: 'Logitech MX Master 3', image: 'https://rukminim1.flixcart.com/image/312/312/xif0q/mouse/l/o/g/logitech-mx-master-3-original-imagfhu75eupxyft.jpeg' },
-        { id: 'acc5', platform: 'Amazon', price: 1999, delivery: 1, rating: 4.3, logo: '🛒', link: 'https://www.amazon.in/Apple-Magic-Keyboard-Wireless-Rechargable/dp/B01MZAX6W8/', name: 'Apple Magic Keyboard', image: 'https://m.media-amazon.com/images/I/71TPda7cwUL._AC_UY218_.jpg' },
-        { id: 'acc6', platform: 'Flipkart', price: 1899, delivery: 2, rating: 4.1, logo: '🛒', link: 'https://www.flipkart.com/apple-magic-keyboard-wireless-rechargable/p/itm8c9c5c5c5c5c5', name: 'Apple Magic Keyboard', image: 'https://rukminim1.flixcart.com/image/312/312/xif0q/keyboard/a/p/p/apple-magic-keyboard-original-imagfhu75eupxyft.jpeg' },
-    ],
-    'fitness': [
-        { id: 'fit1', platform: 'Amazon', price: 39999, delivery: 2, rating: 4.5, logo: '🛒', link: 'https://www.amazon.in/Peloton-Bike-Plus-Exercise/dp/B08FC5L3RG/', name: 'Peloton Bike+', image: 'https://m.media-amazon.com/images/I/71TPda7cwUL._AC_UY218_.jpg' },
-        { id: 'fit2', platform: 'Flipkart', price: 37999, delivery: 3, rating: 4.3, logo: '🛒', link: 'https://www.flipkart.com/peloton-bike-plus-exercise-bike/p/itm8c9c5c5c5c5c5', name: 'Peloton Bike+', image: 'https://rukminim1.flixcart.com/image/312/312/xif0q/exercise-bike/p/e/l/peloton-bike-plus-original-imagfhu75eupxyft.jpeg' },
-        { id: 'fit3', platform: 'Amazon', price: 19999, delivery: 2, rating: 4.4, logo: '🛒', link: 'https://www.amazon.in/Mirror-Interactive-Fitness-Display/dp/B08FC5L3RG/', name: 'Mirror Interactive Fitness', image: 'https://m.media-amazon.com/images/I/71TPda7cwUL._AC_UY218_.jpg' },
-        { id: 'fit4', platform: 'Flipkart', price: 18799, delivery: 3, rating: 4.2, logo: '🛒', link: 'https://www.flipkart.com/mirror-interactive-fitness-display/p/itm8c9c5c5c5c5c5', name: 'Mirror Interactive Fitness', image: 'https://rukminim1.flixcart.com/image/312/312/xif0q/fitness-equipment/m/i/r/mirror-interactive-fitness-original-imagfhu75eupxyft.jpeg' },
-    ]
 };
 
-// Search products
+// Search products from MongoDB
 const searchProducts = async (req, res) => {
-    try {
-        const { query } = req.query;
-        
-        if (!query) {
-            return res.status(400).json({ error: 'Query parameter is required' });
-        }
-
-        console.log('🔍 Searching for:', query);
-
-        // Check if MongoDB is connected
-        if (mongoose.connection.readyState !== 1) {
-            console.log('📱 Demo mode: Using sample data');
-            
-            // Always return ALL products for comparison
-            const allProducts = Object.values(sampleResults).flat();
-            
-            console.log(`📱 Returning ALL ${allProducts.length} products for comparison`);
-            return res.json(allProducts);
-        }
-
-        // Real MongoDB search
-        const products = await Product.find({
-            $or: [
-                { name: { $regex: query, $options: 'i' } },
-                { description: { $regex: query, $options: 'i' } },
-                { category: { $regex: query, $options: 'i' } }
-            ]
-        }).limit(10);
-
-        res.json(products);
-    } catch (error) {
-        console.error('Search error:', error);
-        res.status(500).json({ error: 'Internal server error' });
+  try {
+    const { query } = req.query;
+    if (!query) {
+      return res.status(400).json({ error: 'Query parameter is required' });
     }
+
+    // Check if MongoDB is connected
+    if (mongoose.connection.readyState !== 1) {
+      // MongoDB not connected, return sample data
+      const key = query.toLowerCase();
+      const results = sampleResults[key] || sampleResults.iphone || [];
+      const bestDeal = getBestDeal(results);
+      return res.json({ query, results, bestDeal });
+    }
+
+    // Search in MongoDB
+    const regex = new RegExp(query, 'i');
+    const products = await Product.find({ name: regex }).limit(20);
+
+    if (products.length === 0) {
+      // No products found, return sample data
+      const key = query.toLowerCase();
+      const results = sampleResults[key] || sampleResults.iphone || [];
+      const bestDeal = getBestDeal(results);
+      return res.json({ query, results, bestDeal });
+    }
+
+    const results = products.map(product => ({
+      id: product._id.toString(),
+      platform: product.platform,
+      price: product.price,
+      delivery: product.delivery,
+      rating: product.rating,
+      logo: '🛒',
+      link: product.link,
+      name: product.name,
+      image: product.image
+    }));
+
+    const bestDeal = getBestDeal(results);
+    res.json({ query, results, bestDeal });
+  } catch (error) {
+    console.error('Search error:', error);
+    res.status(500).json({ error: 'Search failed', details: error.message });
+  }
+};
+
+// Scrape products in real-time from Flipkart & Amazon
+const scrapeProducts = async (req, res) => {
+  try {
+    const { query } = req.query;
+    if (!query) {
+      return res.status(400).json({ error: 'Query parameter is required' });
+    }
+
+    console.log(`Scraping live data for: ${query}`);
+
+    // Run scrapers concurrently
+    const [flipkartResults, amazonResults] = await Promise.all([
+      scrapeFlipkart(query),
+      scrapeAmazon(query),
+    ]);
+
+    // Merge and normalize results
+    const results = [...flipkartResults, ...amazonResults].filter(p => p && p.name && p.price > 0);
+
+    // Fallback to demo data if scraping returns nothing
+    if (results.length === 0) {
+      const key = query.toLowerCase();
+      const allProducts = Object.values(sampleResults).flat();
+      const fallback = sampleResults[key] || allProducts.slice(0, 12);
+      const bestDeal = getBestDeal(fallback);
+      return res.json({ query, results: fallback, bestDeal, source: 'mock' });
+    }
+
+    const bestDeal = getBestDeal(results);
+    return res.json({
+      query,
+      results,
+      bestDeal,
+      source: 'scraped',
+      counts: { flipkart: flipkartResults.length, amazon: amazonResults.length },
+    });
+  } catch (err) {
+    console.error('Scraping error:', err.message);
+    return res.status(500).json({ error: 'Scraping failed', details: err.message });
+  }
 };
 
 module.exports = {
-    searchProducts
+  searchProducts,
+  scrapeProducts,
 };

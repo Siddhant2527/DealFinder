@@ -41,7 +41,7 @@ exports.registerUser = async (req, res) => {
       password: hashedPassword 
     });
 
-    console.log('✅ User registered in database:', user.username);
+    console.log('User registered in database:', user.username);
     const token = signToken(user);
     return res.status(201).json({ token, username: user.username });
   } catch (err) {
@@ -53,7 +53,7 @@ exports.registerUser = async (req, res) => {
 exports.loginUser = async (req, res) => {
   try {
     const { username, password } = req.body;
-
+    console.log('Login attempt for user:', username);
     if (!username?.trim() || !password?.trim()) {
       return res.status(400).json({ msg: 'Username and password are required' });
     }
@@ -66,18 +66,18 @@ exports.loginUser = async (req, res) => {
     // Find user in database
     const user = await User.findOne({ username: username.trim() });
     if (!user) {
-      console.log('❌ Login failed: User not found -', username.trim());
+      console.log('Login failed: User not found -', username.trim());
       return res.status(400).json({ msg: 'Invalid username or password' });
     }
 
     // Verify password
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
-      console.log('❌ Login failed: Incorrect password for user -', user.username);
+      console.log(' Login failed: Incorrect password for user -', user.username);
       return res.status(400).json({ msg: 'Invalid username or password' });
     }
 
-    console.log('✅ User logged in from database:', user.username);
+    console.log(' User logged in from database:', user.username);
     const token = signToken(user);
     return res.json({ token, username: user.username });
   } catch (err) {
