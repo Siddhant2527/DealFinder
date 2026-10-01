@@ -1,243 +1,132 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Search, Sparkles, TrendingUp, X, ArrowRight } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { ArrowRight, Search, TrendingUp, X } from 'lucide-react';
+
+const popularSearches = [
+    { text: 'iPhone 13', icon: '📱', category: 'Phones' },
+    { text: 'Samsung Galaxy S24', icon: '📱', category: 'Phones' },
+    { text: 'MacBook Air', icon: '💻', category: 'Laptops' },
+    { text: 'Sony headphones', icon: '🎧', category: 'Audio' },
+    { text: 'iPad', icon: '▰', category: 'Tablets' },
+    { text: 'PlayStation 5', icon: '🎮', category: 'Gaming' },
+];
 
 const SearchBar = ({ onSearch, isLoading }) => {
-  const [query, setQuery] = useState('');
-    const [suggestions, setSuggestions] = useState([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
+    const [query, setQuery] = useState('');
+    const [showSuggestions, setShowSuggestions] = useState(false);
     const [selectedIndex, setSelectedIndex] = useState(-1);
-    const [isFocused, setIsFocused] = useState(false);
+    const containerRef = useRef(null);
     const inputRef = useRef(null);
-    const suggestionsRef = useRef(null);
 
-    const popularSearches = [
-        { text: "iPhone 13", icon: "📱", category: "Smartphones" },
-        { text: "Samsung Galaxy", icon: "📱", category: "Smartphones" },
-        { text: "Laptop", icon: "💻", category: "Computers" },
-        { text: "TV", icon: "📺", category: "Electronics" },
-        { text: "Headphones", icon: "🎧", category: "Audio" },
-        { text: "Camera", icon: "📷", category: "Photography" },
-        { text: "Tablet", icon: "📱", category: "Mobile" },
-        { text: "Smartwatch", icon: "⌚", category: "Wearables" },
-        { text: "Gaming", icon: "🎮", category: "Gaming" },
-        { text: "Speaker", icon: "🔊", category: "Audio" }
-    ];
-
-    useEffect(() => {
-        if (query.trim()) {
-            const filtered = popularSearches.filter(item =>
-                item.text.toLowerCase().includes(query.toLowerCase())
-            );
-            setSuggestions(filtered);
-            setShowSuggestions(filtered.length > 0);
-        } else {
-            setSuggestions(popularSearches);
-            setShowSuggestions(isFocused);
-        }
-        setSelectedIndex(-1);
-    }, [query, isFocused]);
+    const suggestions = query.trim()
+        ? popularSearches.filter(item => item.text.toLowerCase().includes(query.toLowerCase()))
+        : popularSearches;
 
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (suggestionsRef.current && !suggestionsRef.current.contains(event.target)) {
+            if (containerRef.current && !containerRef.current.contains(event.target)) {
                 setShowSuggestions(false);
-                setIsFocused(false);
             }
         };
-
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const handleKeyDown = (e) => {
-        if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            setSelectedIndex(prev => 
-                prev < suggestions.length - 1 ? prev + 1 : prev
-            );
-        } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            setSelectedIndex(prev => prev > 0 ? prev - 1 : -1);
-        } else if (e.key === 'Enter') {
-    e.preventDefault();
-            if (selectedIndex >= 0 && suggestions[selectedIndex]) {
-                handleSuggestionClick(suggestions[selectedIndex].text);
-            } else {
-                handleSearch();
-            }
-        } else if (e.key === 'Escape') {
+    const submitSearch = (value = query) => {
+        const cleanQuery = value.trim();
+        if (!cleanQuery || isLoading) return;
+        setQuery(cleanQuery);
+        setShowSuggestions(false);
+        onSearch(cleanQuery);
+    };
+
+    const handleKeyDown = (event) => {
+        if (event.key === 'ArrowDown' && showSuggestions && suggestions.length) {
+            event.preventDefault();
+            setSelectedIndex(index => Math.min(index + 1, suggestions.length - 1));
+        } else if (event.key === 'ArrowUp' && showSuggestions && suggestions.length) {
+            event.preventDefault();
+            setSelectedIndex(index => Math.max(index - 1, -1));
+        } else if (event.key === 'Enter') {
+            event.preventDefault();
+            submitSearch(selectedIndex >= 0 ? suggestions[selectedIndex]?.text : query);
+        } else if (event.key === 'Escape') {
             setShowSuggestions(false);
             setSelectedIndex(-1);
-            setIsFocused(false);
         }
-    };
-
-    const handleSearch = () => {
-    if (query.trim()) {
-      onSearch(query.trim());
-      setShowSuggestions(false);
-            setIsFocused(false);
-    }
-  };
-
-  const handleSuggestionClick = (suggestion) => {
-        setQuery(suggestion);
-        onSearch(suggestion);
-    setShowSuggestions(false);
-        setSelectedIndex(-1);
-        setIsFocused(false);
-    };
-
-    const handleInputChange = (e) => {
-        setQuery(e.target.value);
     };
 
     const clearSearch = () => {
         setQuery('');
-        setShowSuggestions(false);
         setSelectedIndex(-1);
         inputRef.current?.focus();
     };
 
-  return (
-        <div className="relative w-full max-w-4xl mx-auto" ref={suggestionsRef}>
-            {/* Main Search Container */}
-            <div className="relative group">
-                {/* Search Input */}
-        <div className="relative">
-          <input 
-                        ref={inputRef}
-            type="text" 
-            value={query} 
-                        onChange={handleInputChange}
-                        onKeyDown={handleKeyDown}
-                        onFocus={() => {
-                            setIsFocused(true);
-                            setShowSuggestions(true);
-                        }}
-                        placeholder="Search for products, brands, or categories..."
-                        className="w-full px-6 py-4 pl-16 pr-20 text-lg bg-white/90 backdrop-blur-xl border-2 border-white/30 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-400 shadow-xl transition-all duration-300 placeholder-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                        disabled={isLoading}
-                    />
-                    
-                    {/* Search Icon */}
-                    <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                        <div className="relative">
-                            <Search className="h-6 w-6 text-gray-400 group-focus-within:text-blue-500 transition-colors duration-200" />
-                            <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-sm opacity-0 group-focus-within:opacity-100 transition-opacity duration-200"></div>
-                        </div>
+    return (
+        <div ref={containerRef} className="relative mx-auto w-full">
+            <div className="flex min-h-[60px] items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 transition focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-100 sm:min-h-[68px] sm:px-5">
+                <Search size={22} className="shrink-0 text-slate-400" />
+                <input
+                    ref={inputRef}
+                    type="search"
+                    value={query}
+                    onChange={event => {
+                        setQuery(event.target.value);
+                        setSelectedIndex(-1);
+                    }}
+                    onFocus={() => setShowSuggestions(true)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Search a product, brand or model..."
+                    aria-label="Search electronics"
+                    aria-expanded={showSuggestions && suggestions.length > 0}
+                    autoComplete="off"
+                    disabled={isLoading}
+                    className="min-w-0 flex-1 bg-transparent py-3 text-sm font-medium text-slate-900 outline-none placeholder:font-normal placeholder:text-slate-400 disabled:opacity-60 sm:text-base"
+                />
+                {query && (
+                    <button onClick={clearSearch} type="button" className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700" aria-label="Clear search">
+                        <X size={17} />
+                    </button>
+                )}
+                <button
+                    onClick={() => submitSearch()}
+                    type="button"
+                    disabled={isLoading || !query.trim()}
+                    className="flex h-11 shrink-0 items-center gap-2 rounded-lg bg-indigo-600 px-4 text-sm font-bold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300 sm:px-5"
+                >
+                    <span className="hidden sm:inline">{isLoading ? 'Searching' : 'Compare prices'}</span>
+                    {isLoading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" /> : <ArrowRight size={17} />}
+                </button>
+            </div>
+
+            {showSuggestions && suggestions.length > 0 && !isLoading && (
+                <div className="absolute left-0 right-0 top-[calc(100%+10px)] z-50 overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-[0_22px_60px_rgba(15,23,42,.2)]">
+                    <div className="flex items-center gap-2 border-b border-slate-100 px-4 py-3 text-[11px] font-bold uppercase tracking-[.14em] text-slate-400">
+                        <TrendingUp size={15} className="text-indigo-500" />
+                        {query.trim() ? 'Popular matches' : 'Popular electronics searches'}
                     </div>
-
-                    {/* Clear Button */}
-                    {query && (
-                        <button
-                            onClick={clearSearch}
-                            className="absolute inset-y-0 right-16 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors duration-200"
-                        >
-                            <X className="h-5 w-5" />
-                        </button>
-                    )}
-
-                    {/* Search Button */}
-          <button 
-                        onClick={handleSearch}
-                        disabled={isLoading || !query.trim()}
-                        className="absolute inset-y-0 right-0 px-6 flex items-center bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-r-2xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                    >
-                        {isLoading ? (
-                            <div className="flex items-center">
-                                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                                <span className="font-medium">Searching...</span>
-                            </div>
-                        ) : (
-                            <div className="flex items-center">
-                                <span className="font-medium mr-2">Search</span>
-                                <ArrowRight className="h-4 w-4" />
-                            </div>
-                        )}
-          </button>
-                </div>
-
-                {/* Glow Effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-2xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 -z-10"></div>
-        </div>
-        
-        {/* Suggestions Dropdown */}
-            {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute z-50 w-full mt-3 bg-white/95 backdrop-blur-xl border border-white/30 rounded-2xl shadow-2xl max-h-96 overflow-y-auto">
-                    {/* Header */}
-                    <div className="sticky top-0 bg-gradient-to-r from-blue-50 to-purple-50 px-4 py-3 border-b border-white/30 rounded-t-2xl">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center">
-                                <TrendingUp className="h-4 w-4 text-blue-500 mr-2" />
-                                <span className="text-sm font-medium text-gray-700">
-                                    {query.trim() ? 'Search Suggestions' : 'Popular Searches'}
-                                </span>
-                            </div>
-                            <Sparkles className="h-4 w-4 text-purple-500" />
-                        </div>
-                    </div>
-
-                    {/* Suggestions List */}
-                    <div className="py-2">
+                    <div className="grid gap-1 p-2 sm:grid-cols-2">
                         {suggestions.map((suggestion, index) => (
-              <button
+                            <button
                                 key={suggestion.text}
-                                onClick={() => handleSuggestionClick(suggestion.text)}
-                                className={`w-full px-4 py-3 text-left hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 focus:bg-gradient-to-r focus:from-blue-50 focus:to-purple-50 focus:outline-none transition-all duration-150 ${
-                                    index === selectedIndex ? 'bg-gradient-to-r from-blue-50 to-purple-50 border-l-4 border-blue-500' : ''
-                                } ${index === 0 ? 'rounded-t-lg' : ''} ${index === suggestions.length - 1 ? 'rounded-b-2xl' : ''}`}
+                                onMouseEnter={() => setSelectedIndex(index)}
+                                onClick={() => submitSearch(suggestion.text)}
+                                type="button"
+                                className={`flex items-center gap-3 rounded-xl px-3 py-3 text-left transition ${index === selectedIndex ? 'bg-indigo-50' : 'hover:bg-slate-50'}`}
                             >
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center">
-                                        <span className="text-xl mr-3">{suggestion.icon}</span>
-                <div>
-                                            <div className="font-medium text-gray-800">{suggestion.text}</div>
-                                            <div className="text-sm text-gray-500">{suggestion.category}</div>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center">
-                                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full mr-2">
-                                            {suggestion.category}
-                                        </span>
-                                        <ArrowRight className="h-4 w-4 text-gray-400" />
-                                    </div>
-                </div>
-              </button>
-            ))}
-          </div>
-
-                    {/* Footer */}
-                    <div className="sticky bottom-0 bg-gradient-to-r from-gray-50 to-blue-50 px-4 py-2 border-t border-white/30 rounded-b-2xl">
-                        <div className="flex items-center justify-between text-xs text-gray-500">
-                            <span>Press Enter to search</span>
-                            <span>Use ↑↓ to navigate</span>
-        </div>
-      </div>
-                </div>
-            )}
-
-            {/* Quick Tips */}
-            {!query && !showSuggestions && (
-                <div className="mt-4 text-center">
-                    <div className="inline-flex items-center space-x-4 text-sm text-gray-500">
-                        <span className="flex items-center">
-                            <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-                            Try: iPhone 13
-                        </span>
-                        <span className="flex items-center">
-                            <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
-                            Try: Samsung Galaxy
-                        </span>
-                        <span className="flex items-center">
-                            <span className="w-2 h-2 bg-pink-500 rounded-full mr-2"></span>
-                            Try: Laptop
-                        </span>
+                                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-lg">{suggestion.icon}</span>
+                                <span className="min-w-0 flex-1">
+                                    <span className="block truncate text-sm font-bold text-slate-800">{suggestion.text}</span>
+                                    <span className="mt-0.5 block text-xs text-slate-400">{suggestion.category}</span>
+                                </span>
+                                <ArrowRight size={15} className="text-slate-300" />
+                            </button>
+                        ))}
                     </div>
+                    <div className="border-t border-slate-100 px-4 py-2 text-[11px] text-slate-400">Search by exact model for the most relevant matches · Enter to search</div>
                 </div>
             )}
-    </div>
-  );
+        </div>
+    );
 };
 
 export default SearchBar;

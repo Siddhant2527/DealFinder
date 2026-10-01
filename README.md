@@ -4,8 +4,8 @@ A modern web application that helps users find the best deals across multiple e-
 
 ## Features
 
-- 🔍 **Smart Product Search** - Search across multiple platforms
-- 💰 **Price Comparison** - Compare prices from different retailers
+- 🔍 **Electronics Search** - Search phones, laptops, tablets, TVs, audio, cameras, and gaming devices
+- 💰 **Live Price Comparison** - Compare listings scraped from Amazon India, Flipkart, Croma, Reliance Digital, and iStore
 - 🤖 **AI Shopping Assistant** - Get AI-powered product reviews and buying guides
 - 🛒 **Shopping Cart** - Save items for later
 - 🔐 **User Authentication** - Secure login and registration
@@ -114,6 +114,20 @@ npm run frontend
    npm start
    ```
 
+## Deploying to Vercel
+
+The repository is configured for Vercel with a Vite static build and a serverless Express API.
+
+1. Push the project to a GitHub repository and import it from the Vercel dashboard.
+2. Keep the project root directory set to the repository root. `vercel.json` installs both frontend and backend dependencies and builds the frontend into `dist`.
+3. Add these environment variables in **Vercel → Project → Settings → Environment Variables**:
+   - `MONGO_URI` — a MongoDB Atlas connection string reachable from Vercel.
+   - `JWT_SECRET` — a long, randomly generated secret used to sign login tokens.
+   - `GEMINI_API_KEY` — optional; needed for the AI shopping assistant.
+4. Deploy the project. The frontend and `/api/*` endpoints are served from the same Vercel domain.
+
+Do not commit `.env` files or put private API keys in frontend code. If a key has already been committed, revoke it and create a replacement before deployment.
+
 ## API Endpoints
 
 ### Authentication
@@ -121,7 +135,9 @@ npm run frontend
 - `POST /api/auth/login` - Login user
 
 ### Products
-- `GET /api/products/search?query=<search_term>` - Search products
+- `GET /api/products/scrape?query=<electronics_search>` - Fetch current electronics listings and prices from supported retailers
+
+Retailer websites may block automated requests or change their page structure. A retailer that cannot be reached is reported as unavailable, and the app does not substitute sample prices or products.
 
 ## Project Structure
 

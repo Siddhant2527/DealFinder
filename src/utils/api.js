@@ -1,9 +1,6 @@
-const GEMINI_API_KEY = "AIzaSyCmMU-J-APus5yknEN5_hSisOIxg3OBrgw"; // Gemini API Key
-
 export const callGeminiAPI = async (prompt) => {
     try {
-        // Call backend Gemini API endpoint
-        const response = await fetch('http://localhost:5000/api/ai/gemini', {
+        const response = await fetch('/api/ai/gemini', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -336,7 +333,7 @@ Bluetooth 5.1 with PartyBoost for connecting multiple speakers.`
 };
 
 // Mock authentication for demo mode
-export const mockAuth = async (username, password, isLogin = true) => {
+export const mockAuth = async (username, password) => {
     await new Promise(resolve => setTimeout(resolve, 500));
     
     if (!username || !password) {
@@ -356,86 +353,10 @@ export const mockAuth = async (username, password, isLogin = true) => {
 };
 
 export const searchProductsAPI = async (query) => {
-    try {
-        // Use the new scrape endpoint on port 5000 for real-time data
-        const response = await fetch(`http://localhost:5000/api/products/scrape?query=${encodeURIComponent(query)}`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        // Return the results array from the scrape endpoint
-        return Array.isArray(data.results) ? data.results : [];
-    } catch (error) {
-        console.error("Failed to fetch products:", error);
-        // Return demo data when backend is not available
-        const demoData = {
-            'iphone': [
-                { id: 'iphone1', platform: 'Amazon', price: 59999, delivery: 2, rating: 4.5, logo: '🛒', link: 'https://www.amazon.in/Apple-iPhone-13-128GB-Pink/dp/B09G9HD6PD/', name: 'iPhone 13 128GB', image: 'https://m.media-amazon.com/images/I/71GLMJ7TQiL._AC_UY218_.jpg' },
-                { id: 'iphone2', platform: 'Flipkart', price: 57999, delivery: 3, rating: 4.3, logo: '🛒', link: 'https://www.flipkart.com/apple-iphone-13-pink-128-gb/p/itm6e30c6ee045d2', name: 'iPhone 13 128GB', image: 'https://rukminim1.flixcart.com/image/312/312/xif0q/mobile/3/5/l/-original-imagfhu75eupxyft.jpeg' },
-                { id: 'iphone3', platform: 'Reliance Digital', price: 60999, delivery: 1, rating: 4.6, logo: '🛒', link: 'https://www.reliancedigital.in/apple-iphone-13-128gb-pink/p/491997555', name: 'iPhone 13 128GB', image: 'https://www.reliancedigital.in/medias/Apple-iPhone-13-128GB-Pink-491997555-1.jpg' },
-                { id: 'iphone4', platform: 'Croma', price: 58999, delivery: 4, rating: 4.2, logo: '🛒', link: 'https://www.croma.com/apple-iphone-13-128gb-pink/p/241145', name: 'iPhone 13 128GB', image: 'https://www.croma.com/media/catalog/product/cache/1/image/9df78eab33525d08d6e5fb8d27136e95/a/p/apple-iphone-13-128gb-pink_1.png' },
-            ],
-            'samsung': [
-                { id: 'samsung1', platform: 'Amazon', price: 45999, delivery: 2, rating: 4.4, logo: '🛒', link: 'https://www.amazon.in/Samsung-Galaxy-S21-FE-5G/dp/B09V3QK8YF/', name: 'Samsung Galaxy S21 FE', image: 'https://m.media-amazon.com/images/I/71TPda7cwUL._AC_UY218_.jpg' },
-                { id: 'samsung2', platform: 'Flipkart', price: 43999, delivery: 3, rating: 4.1, logo: '🛒', link: 'https://www.flipkart.com/samsung-galaxy-s21-fe-5g-lavender-128-gb/p/itm8c9c5c5c5c5c5', name: 'Samsung Galaxy S21 FE', image: 'https://rukminim1.flixcart.com/image/312/312/xif0q/mobile/3/5/l/-original-imagfhu75eupxyft.jpeg' },
-                { id: 'samsung3', platform: 'Samsung Store', price: 46999, delivery: 1, rating: 4.7, logo: '🛒', link: 'https://www.samsung.com/in/smartphones/galaxy-s21-fe-5g/', name: 'Samsung Galaxy S21 FE', image: 'https://images.samsung.com/is/image/samsung/p6pim/in/sm-g990elgdin/gallery/in-galaxy-s21-fe-5g-sm-g990elgdin-thumb-530968926' },
-            ],
-            'laptop': [
-                { id: 'laptop1', platform: 'Amazon', price: 89999, delivery: 3, rating: 4.6, logo: '🛒', link: 'https://www.amazon.in/Dell-Inspiron-3511-15-6-inch-i5-1135G7/dp/B08N5WRWNW/', name: 'Dell Inspiron 15', image: 'https://m.media-amazon.com/images/I/71TPda7cwUL._AC_UY218_.jpg' },
-                { id: 'laptop2', platform: 'Flipkart', price: 87999, delivery: 4, rating: 4.3, logo: '🛒', link: 'https://www.flipkart.com/dell-inspiron-3511-core-i5-11th-gen-8-gb-512-gb-ssd-windows-10-home-15-6-inch-laptop/p/itm8c9c5c5c5c5c5', name: 'Dell Inspiron 15', image: 'https://rukminim1.flixcart.com/image/312/312/xif0q/computer/8/8/8/inspiron-3511-dell-original-imagfhu75eupxyft.jpeg' },
-                { id: 'laptop3', platform: 'Dell Store', price: 91999, delivery: 2, rating: 4.5, logo: '🛒', link: 'https://www.dell.com/en-in/shop/laptops-2-in-1-pcs/inspiron-15-laptop/spd/inspiron-15-3511-laptop', name: 'Dell Inspiron 15', image: 'https://i.dell.com/is/image/DellContent/content/dam/ss2/product-images/dellwww/products/laptops-and-2-in-1s/inspiron/15-3511/media-gallery/in3511t-xnb-lf-gallery-1.psd?fmt=png-alpha&pscan=auto&scl=1&hei=402&wid=402&qlt=100,1&resMode=sharp2&size=402,402' },
-            ],
-            'tv': [
-                { id: 'tv1', platform: 'Amazon', price: 29999, delivery: 2, rating: 4.4, logo: '🛒', link: 'https://www.amazon.in/LG-55-inch-Ultra-Smart-55UQ7500PSF/dp/B09V3QK8YF/', name: 'LG 55" Smart TV', image: 'https://m.media-amazon.com/images/I/71TPda7cwUL._AC_UY218_.jpg' },
-                { id: 'tv2', platform: 'Flipkart', price: 27999, delivery: 3, rating: 4.2, logo: '🛒', link: 'https://www.flipkart.com/lg-55-inch-4k-ultra-hd-smart-led-tv-55uq7500psf/p/itm8c9c5c5c5c5c5', name: 'LG 55" Smart TV', image: 'https://rukminim1.flixcart.com/image/312/312/xif0q/television/l/g/l/lg-55-inch-4k-ultra-hd-smart-led-tv-55uq7500psf-original-imagfhu75eupxyft.jpeg' },
-                { id: 'tv3', platform: 'Croma', price: 30999, delivery: 1, rating: 4.6, logo: '🛒', link: 'https://www.croma.com/lg-55-inch-4k-ultra-hd-smart-led-tv-55uq7500psf-/p/241145', name: 'LG 55" Smart TV', image: 'https://www.croma.com/media/catalog/product/cache/1/image/9df78eab33525d08d6e5fb8d27136e95/l/g/lg-55-inch-4k-ultra-hd-smart-led-tv-55uq7500psf-_1.png' },
-            ],
-            'headphones': [
-                { id: 'headphones1', platform: 'Amazon', price: 2499, delivery: 1, rating: 4.3, logo: '🛒', link: 'https://www.amazon.in/Sony-WH-1000XM4-Cancelling-Headphones-Bluetooth/dp/B0863TXGM3/', name: 'Sony WH-1000XM4', image: 'https://m.media-amazon.com/images/I/71o8Q5XJS5L._AC_UY218_.jpg' },
-                { id: 'headphones2', platform: 'Flipkart', price: 2299, delivery: 2, rating: 4.1, logo: '🛒', link: 'https://www.flipkart.com/sony-wh-1000xm4-wireless-noise-cancelling-headphones/p/itm8c9c5c5c5c5c5', name: 'Sony WH-1000XM4', image: 'https://rukminim1.flixcart.com/image/312/312/xif0q/headphone/s/o/n/sony-wh-1000xm4-original-imagfhu75eupxyft.jpeg' },
-                { id: 'headphones3', platform: 'Croma', price: 2599, delivery: 1, rating: 4.4, logo: '🛒', link: 'https://www.croma.com/sony-wh-1000xm4-wireless-noise-cancelling-headphones/p/241145', name: 'Sony WH-1000XM4', image: 'https://www.croma.com/media/catalog/product/cache/1/image/9df78eab33525d08d6e5fb8d27136e95/s/o/sony-wh-1000xm4_1.png' },
-            ],
-            'camera': [
-                { id: 'camera1', platform: 'Amazon', price: 89999, delivery: 3, rating: 4.6, logo: '🛒', link: 'https://www.amazon.in/Canon-EOS-R6-Mark-II-Mirrorless/dp/B0B7QK8YF/', name: 'Canon EOS R6 Mark II', image: 'https://m.media-amazon.com/images/I/71TPda7cwUL._AC_UY218_.jpg' },
-                { id: 'camera2', platform: 'Flipkart', price: 87999, delivery: 4, rating: 4.3, logo: '🛒', link: 'https://www.flipkart.com/canon-eos-r6-mark-ii-mirrorless-camera/p/itm8c9c5c5c5c5c5', name: 'Canon EOS R6 Mark II', image: 'https://rukminim1.flixcart.com/image/312/312/xif0q/camera/c/a/n/canon-eos-r6-mark-ii-original-imagfhu75eupxyft.jpeg' },
-                { id: 'camera3', platform: 'Canon Store', price: 91999, delivery: 2, rating: 4.5, logo: '🛒', link: 'https://www.canon.in/cameras/eos-r6-mark-ii/', name: 'Canon EOS R6 Mark II', image: 'https://www.canon.in/media/catalog/product/cache/1/image/9df78eab33525d08d6e5fb8d27136e95/c/a/canon-eos-r6-mark-ii_1.png' },
-            ],
-            'tablet': [
-                { id: 'tablet1', platform: 'Amazon', price: 39999, delivery: 2, rating: 4.4, logo: '🛒', link: 'https://www.amazon.in/Apple-iPad-Air-10-9-inch-Wi-Fi/dp/B08J6FLLZ8/', name: 'iPad Air 10.9"', image: 'https://m.media-amazon.com/images/I/71TPda7cwUL._AC_UY218_.jpg' },
-                { id: 'tablet2', platform: 'Flipkart', price: 37999, delivery: 3, rating: 4.2, logo: '🛒', link: 'https://www.flipkart.com/apple-ipad-air-10-9-inch-wi-fi-64-gb/p/itm8c9c5c5c5c5c5', name: 'iPad Air 10.9"', image: 'https://rukminim1.flixcart.com/image/312/312/xif0q/tablet/i/p/a/apple-ipad-air-10-9-inch-original-imagfhu75eupxyft.jpeg' },
-                { id: 'tablet3', platform: 'Apple Store', price: 41999, delivery: 1, rating: 4.6, logo: '🛒', link: 'https://www.apple.com/in/ipad-air/', name: 'iPad Air 10.9"', image: 'https://www.apple.com/in/ipad-air/images/overview/hero/hero_ipad_air__d1tfa5zby7e6_large.png' },
-            ],
-            'smartwatch': [
-                { id: 'watch1', platform: 'Amazon', price: 39999, delivery: 2, rating: 4.5, logo: '🛒', link: 'https://www.amazon.in/Apple-Watch-Series-8-GPS/dp/B0BDJ6ZMYM/', name: 'Apple Watch Series 8', image: 'https://m.media-amazon.com/images/I/71TPda7cwUL._AC_UY218_.jpg' },
-                { id: 'watch2', platform: 'Flipkart', price: 37999, delivery: 3, rating: 4.3, logo: '🛒', link: 'https://www.flipkart.com/apple-watch-series-8-gps-41mm/p/itm8c9c5c5c5c5c5', name: 'Apple Watch Series 8', image: 'https://rukminim1.flixcart.com/image/312/312/xif0q/smartwatch/a/p/p/apple-watch-series-8-original-imagfhu75eupxyft.jpeg' },
-                { id: 'watch3', platform: 'Apple Store', price: 41999, delivery: 1, rating: 4.7, logo: '🛒', link: 'https://www.apple.com/in/apple-watch-series-8/', name: 'Apple Watch Series 8', image: 'https://www.apple.com/in/apple-watch-series-8/images/overview/hero/hero_apple_watch_series_8__d1tfa5zby7e6_large.png' },
-            ],
-            'gaming': [
-                { id: 'gaming1', platform: 'Amazon', price: 49999, delivery: 3, rating: 4.6, logo: '🛒', link: 'https://www.amazon.in/PlayStation-5-Console/dp/B08FC5L3RG/', name: 'PlayStation 5 Console', image: 'https://m.media-amazon.com/images/I/71TPda7cwUL._AC_UY218_.jpg' },
-                { id: 'gaming2', platform: 'Flipkart', price: 47999, delivery: 4, rating: 4.4, logo: '🛒', link: 'https://www.flipkart.com/playstation-5-console/p/itm8c9c5c5c5c5c5', name: 'PlayStation 5 Console', image: 'https://rukminim1.flixcart.com/image/312/312/xif0q/gaming-console/p/l/s/playstation-5-console-original-imagfhu75eupxyft.jpeg' },
-                { id: 'gaming3', platform: 'Sony Store', price: 51999, delivery: 2, rating: 4.7, logo: '🛒', link: 'https://www.sony.in/electronics/playstation-5', name: 'PlayStation 5 Console', image: 'https://www.sony.in/medias/playstation-5-console-1.jpg' },
-            ],
-            'speaker': [
-                { id: 'speaker1', platform: 'Amazon', price: 8999, delivery: 2, rating: 4.3, logo: '🛒', link: 'https://www.amazon.in/JBL-Boombox-2-Portable-Bluetooth-Speaker/dp/B07V4R3N9F/', name: 'JBL Boombox 2', image: 'https://m.media-amazon.com/images/I/71TPda7cwUL._AC_UY218_.jpg' },
-                { id: 'speaker2', platform: 'Flipkart', price: 8799, delivery: 3, rating: 4.1, logo: '🛒', link: 'https://www.flipkart.com/jbl-boombox-2-portable-bluetooth-speaker/p/itm8c9c5c5c5c5c5', name: 'JBL Boombox 2', image: 'https://rukminim1.flixcart.com/image/312/312/xif0q/speaker/j/b/l/jbl-boombox-2-original-imagfhu75eupxyft.jpeg' },
-                { id: 'speaker3', platform: 'JBL Store', price: 9199, delivery: 1, rating: 4.5, logo: '🛒', link: 'https://www.jbl.com/portable-speakers/BOOMBOX2.html', name: 'JBL Boombox 2', image: 'https://www.jbl.com/dw/image/v2/BFND_PRD/on/demandware.static/-/Sites-master-catalog/default/dw1a0c1e6a/images/J/BOOMBOX2_Product%20Image_Hero_001_x2.png' },
-            ]
-        };
-        
-        const queryLower = query.toLowerCase();
-        let results = [];
-        
-        for (const [category, products] of Object.entries(demoData)) {
-            if (category.includes(queryLower) || queryLower.includes(category)) {
-                results = [...results, ...products];
-            }
-        }
-        
-        if (results.length === 0) {
-            const allProducts = Object.values(demoData).flat();
-            results = allProducts.slice(0, 6);
-        }
-        
-        return results;
+    const response = await fetch(`/api/products/scrape?query=${encodeURIComponent(query)}`);
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
     }
+    const data = await response.json();
+    return Array.isArray(data.results) ? data.results : [];
 };

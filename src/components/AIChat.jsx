@@ -37,7 +37,7 @@ const AIChat = ({ isOpen, onClose }) => {
         setIsLoading(true);
 
         try {
-            const response = await fetch('http://localhost:5000/api/ai/gemini', {
+            const response = await fetch('/api/ai/gemini', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -206,4 +206,3 @@ const AIChat = ({ isOpen, onClose }) => {
 };
 
 export default AIChat;
-

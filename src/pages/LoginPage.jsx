@@ -27,10 +27,10 @@ const LoginPage = () => {
 
   const checkDatabaseStatus = async () => {
     try {
-      const response = await fetch('http://localhost:5000/health');
+      const response = await fetch('/api/health');
       const data = await response.json();
       setDatabaseStatus(data.mongodb === 'connected' ? 'connected' : 'disconnected');
-    } catch (error) {
+    } catch {
       setDatabaseStatus('disconnected');
     }
   };
@@ -58,7 +58,7 @@ const LoginPage = () => {
       // Try backend first (database storage)
       try {
         const res = await axios.post(
-          `http://localhost:5001/api/auth/${endpoint}`,
+          `/api/auth/${endpoint}`,
           { username, password }
         );
         
@@ -77,7 +77,7 @@ const LoginPage = () => {
         
         // Backend not available, use mock authentication
         console.log('⚠️ Database not available, using mock authentication');
-        const mockRes = await mockAuth(username, password, isLoginView);
+        const mockRes = await mockAuth(username, password);
         login(mockRes.username, mockRes.token);
       }
     } catch (err) {
@@ -128,189 +128,89 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Animated Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%239C92AC%22%20fill-opacity%3D%220.05%22%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%2230%22%20r%3D%222%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-50"></div>
-        
-        {/* Floating Elements */}
-        <div className="absolute top-20 left-20 w-32 h-32 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full opacity-10 animate-pulse"></div>
-        <div className="absolute bottom-20 right-20 w-24 h-24 bg-gradient-to-r from-indigo-400 to-pink-400 rounded-full opacity-10 animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/4 w-16 h-16 bg-gradient-to-r from-purple-400 to-blue-400 rounded-full opacity-10 animate-bounce delay-500"></div>
-      </div>
-
-      {/* Main Content */}
-      <div className="relative z-10 w-full max-w-md">
-        {/* Glass Card */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 space-y-8">
-          {/* Header */}
-          <div className="text-center space-y-4">
-            <div className="mx-auto h-16 w-16 flex items-center justify-center rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg">
-              <Tag className="h-8 w-8 text-white" />
-            </div>
-            <div>
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                {isLoginView ? 'Welcome Back' : 'Join DealFinder'}
-              </h2>
-              <p className="mt-2 text-gray-600 text-sm">
-                {isLoginView ? 'Sign in to continue your shopping journey' : 'Create your account to start finding deals'}
-              </p>
+    <main className="min-h-screen bg-[#11152c] text-white">
+      <div className="mx-auto grid min-h-screen max-w-7xl lg:grid-cols-2">
+        <section className="relative hidden flex-col justify-between overflow-hidden p-12 lg:flex xl:p-16">
+          <div className="pointer-events-none absolute -right-28 top-24 h-96 w-96 rounded-full bg-indigo-600/30 blur-[90px]" />
+          <div className="pointer-events-none absolute -bottom-36 -left-24 h-96 w-96 rounded-full bg-cyan-400/10 blur-[90px]" />
+          <a href="/" className="relative flex w-fit items-center gap-3">
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-slate-950"><Tag size={20} /></span>
+            <span className="text-xl font-extrabold tracking-tight">deal<span className="text-indigo-300">finder</span></span>
+          </a>
+          <div className="relative max-w-lg">
+            <p className="mb-5 text-xs font-bold uppercase tracking-[.18em] text-cyan-200">A smarter way to shop tech</p>
+            <h1 className="text-5xl font-extrabold leading-[1.08] tracking-tight xl:text-6xl">The right tech.<br /><span className="text-indigo-300">The right price.</span></h1>
+            <p className="mt-6 max-w-md text-base leading-7 text-slate-300">Compare real electronics prices across trusted stores and find the offer that makes sense for you.</p>
+            <div className="mt-10 flex flex-wrap gap-2 text-xs font-semibold text-slate-200">
+              {['Phones & laptops', 'Real retailer offers', 'No sample prices'].map(item => <span key={item} className="rounded-full border border-white/15 bg-white/[.06] px-3 py-2">{item}</span>)}
             </div>
           </div>
+          <p className="relative text-xs text-slate-500">Compare first. Buy directly from your chosen retailer.</p>
+        </section>
 
-          {/* Database Status */}
-          <div className={`border rounded-xl p-4 ${getDatabaseStatusColor()}`}>
-            <div className="flex items-start">
-              <div className="flex-shrink-0">
-                {getDatabaseStatusIcon()}
+        <section className="flex items-center justify-center bg-[#f7f8fa] px-4 py-10 text-slate-900 sm:px-8">
+          <div className="w-full max-w-md">
+            <a href="/" className="mb-8 flex items-center justify-center gap-2.5 lg:hidden">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-950 text-white"><Tag size={19} /></span>
+              <span className="text-xl font-extrabold tracking-tight text-slate-950">deal<span className="text-indigo-600">finder</span></span>
+            </a>
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-9">
+              <div className="mb-7">
+                <p className="text-xs font-bold uppercase tracking-[.16em] text-indigo-600">Welcome to DealFinder</p>
+                <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-slate-950">{isLoginView ? 'Sign in' : 'Create your account'}</h2>
+                <p className="mt-2 text-sm text-slate-500">{isLoginView ? 'Sign in to continue comparing electronics prices.' : 'Create an account to get started.'}</p>
               </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium">
-                  {databaseStatus === 'connected' ? 'Database Storage Active' : 'Demo Mode'}
-                </h3>
-                <p className="text-sm mt-1">
-                  {getDatabaseStatusText()}
-                </p>
-              </div>
-            </div>
-          </div>
 
-          {/* Form */}
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            {/* Username Field */}
-            <div className="space-y-2">
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-                Username
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-gray-400" />
+              <div className={`mb-6 flex items-start gap-3 rounded-xl border p-3.5 ${getDatabaseStatusColor()}`}>
+                <span className="mt-0.5 shrink-0">{getDatabaseStatusIcon()}</span>
+                <div>
+                  <p className="text-sm font-bold">{databaseStatus === 'connected' ? 'Database connected' : databaseStatus === 'disconnected' ? 'Demo mode' : 'Checking connection'}</p>
+                  <p className="mt-0.5 text-xs leading-5">{getDatabaseStatusText()}</p>
                 </div>
-                <input
-                  id="username"
-                  name="username"
-                  type="text"
-                  required
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur-sm"
-                  placeholder="Enter your username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  disabled={isSubmitting}
-                />
               </div>
-            </div>
 
-            {/* Password Field */}
-            <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
+              <form className="space-y-5" onSubmit={handleSubmit}>
+                <div>
+                  <label htmlFor="username" className="mb-1.5 block text-sm font-semibold text-slate-700">Username</label>
+                  <div className="relative">
+                    <User className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-slate-400" />
+                    <input id="username" name="username" type="text" required autoComplete="username" className="block w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100" placeholder="Enter your username" value={username} onChange={(event) => setUsername(event.target.value)} disabled={isSubmitting} />
+                  </div>
                 </div>
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  required
-                  className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur-sm"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isSubmitting}
-                />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setShowPassword(!showPassword)}
-                  disabled={isSubmitting}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" />
-                  )}
+
+                <div>
+                  <label htmlFor="password" className="mb-1.5 block text-sm font-semibold text-slate-700">Password</label>
+                  <div className="relative">
+                    <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-slate-400" />
+                    <input id="password" name="password" type={showPassword ? 'text' : 'password'} required autoComplete={isLoginView ? 'current-password' : 'new-password'} className="block w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-12 text-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100" placeholder="Enter your password" value={password} onChange={(event) => setPassword(event.target.value)} disabled={isSubmitting} />
+                    <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-400 transition hover:text-slate-700" onClick={() => setShowPassword(!showPassword)} disabled={isSubmitting} aria-label={showPassword ? 'Hide password' : 'Show password'}>
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                  <p className="mt-1.5 text-xs text-slate-400">Use at least 6 characters.</p>
+                </div>
+
+                {error && <div role="alert" className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3.5 text-sm text-rose-700"><Shield size={17} className="mt-0.5 shrink-0" />{error}</div>}
+
+                <button type="submit" disabled={isSubmitting} className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3.5 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:opacity-60">
+                  {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {isSubmitting ? (isLoginView ? 'Signing in...' : 'Creating account...') : (isLoginView ? 'Sign in' : 'Create account')}
+                </button>
+              </form>
+
+              <div className="mt-6 border-t border-slate-100 pt-5 text-center">
+                <span className="text-sm text-slate-500">{isLoginView ? "Don't have an account?" : 'Already have an account?'}</span>
+                <button type="button" onClick={toggleView} disabled={isSubmitting} className="ml-1.5 text-sm font-bold text-indigo-600 transition hover:text-indigo-800 disabled:opacity-50">
+                  {isLoginView ? 'Create account' : 'Sign in'}
                 </button>
               </div>
+              <p className="mt-5 flex items-start gap-2 rounded-xl bg-slate-50 p-3 text-xs leading-5 text-slate-500"><Shield size={15} className="mt-0.5 shrink-0 text-slate-400" />{databaseStatus === 'connected' ? 'Your account uses the configured database service.' : 'Demo mode: account data is not stored permanently.'}</p>
             </div>
-
-            {/* Error Message */}
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <Shield className="h-5 w-5 text-red-400" />
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm text-red-700">{error}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="group relative w-full flex justify-center items-center py-3 px-4 border border-transparent text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
-                  {isLoginView ? 'Signing in...' : 'Creating account...'}
-                </>
-              ) : (
-                <>
-                  {isLoginView ? 'Sign In' : 'Create Account'}
-                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
-                </>
-              )}
-            </button>
-          </form>
-
-          {/* Toggle View */}
-          <div className="text-center">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white/80 backdrop-blur-sm text-gray-500">
-                  {isLoginView ? "Don't have an account?" : "Already have an account?"}
-                </span>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={toggleView}
-              disabled={isSubmitting}
-              className="mt-4 text-sm font-medium text-blue-600 hover:text-blue-500 focus:outline-none focus:underline transition-colors duration-200 disabled:opacity-50"
-            >
-              {isLoginView ? 'Create new account' : 'Sign in to existing account'}
-            </button>
+            <p className="mt-5 text-center text-xs text-slate-400">Prices and product availability are confirmed by each retailer.</p>
           </div>
-
-          {/* Demo Info */}
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-            <div className="flex items-start">
-              <div className="flex-shrink-0">
-                <Shield className="h-5 w-5 text-blue-400 mt-0.5" />
-              </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-blue-800">Secure Authentication</h3>
-                <p className="text-sm text-blue-700 mt-1">
-                  {databaseStatus === 'connected' 
-                    ? 'Your account data is stored securely in the database with encrypted passwords.'
-                    : 'Demo mode: No data is stored permanently. Use any username/password to test.'
-                  }
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        </section>
       </div>
-    </div>
+    </main>
   );
 };
 

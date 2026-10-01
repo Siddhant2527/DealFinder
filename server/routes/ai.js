@@ -5,7 +5,6 @@ const router = express.Router();
 router.post('/gemini', async (req, res) => {
     try {
         const { prompt } = req.body;
-        console.log('Received Gemini prompt:', prompt);
         if (!prompt) {
             return res.status(400).json({ error: 'Prompt is required' });
         }
@@ -16,7 +15,7 @@ router.post('/gemini', async (req, res) => {
             return res.status(500).json({ error: 'Gemini API key not configured' });
         }
 
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyAMcVteK3Z4k6cfGI0Dv2wj-z67_iw6L4Y`;
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`;
             
         const payload = {
             contents: [{
@@ -24,7 +23,6 @@ router.post('/gemini', async (req, res) => {
                 parts: [{ text: prompt }]
             }]
         };
-        console.log('Gemini API payload:', payload.contents.parts);
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: {
@@ -32,8 +30,6 @@ router.post('/gemini', async (req, res) => {
             },
             body: JSON.stringify(payload)
         });
-
-        console.log('Gemini API response:', response);
 
         if (!response.ok) {
             throw new Error(`Gemini API error: ${response.status}`);

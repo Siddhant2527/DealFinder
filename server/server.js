@@ -6,59 +6,53 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const app = express();
+let databaseConnection;
 
-// --- Middleware ---
-app.use(cors());                // Allow frontend
-app.use(express.json());         // Parse JSON bodies
+app.use(cors());
+app.use(express.json());
 
-// --- ENV Variables ---
-const PORT = process.env.PORT || 5001;
-const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://siddhant22310772:LUIGyjKZn3sVN6lz@cluster0.xmqrsxl.mongodb.net/?appName=Cluster0";
+const PORT = process.env.PORT || 5000;
 
-// --- DB Connect ---
-console.log("Connecting to MongoDB...",MONGO_URI);
-// if (!MONGO_URI) {
-//   console.error("MONGO_URI not found in .env");
-//   console.log("💡 Using demo mode without database...");
-// } else {
-  const dbConnect = async () =>{
-    console.log("Attempting to connect to MongoDB...");
-    await mongoose
-      .connect("mongodb+srv://siddhant22310772:Demo123@cluster0.xmqrsxl.mongodb.net/?appName=Cluster0")
-      .then(() => console.log("MongoDB connected successfully!"))
-      .catch((err) => {
-        console.error(" MongoDB connection error:", err.message);
-        console.log(" Continuing in demo mode without database...");
+const connectDatabase = async () => {
+  if (mongoose.connection.readyState === 1) return;
+  if (!process.env.MONGO_URI) throw new Error("MONGO_URI is not configured");
+
+  if (!databaseConnection) {
+    databaseConnection = mongoose.connect(process.env.MONGO_URI)
+      .catch((error) => {
+        databaseConnection = null;
+        throw error;
       });
   }
-// }
+  await databaseConnection;
+};
 
-// --- Health check route ---
-app.get("/", (_req, res) => {
-  res.send("DealFinder Backend is running & connected to MongoDB!");
-});
-
-app.get("/health", (_req, res) => {
-  res.json({ 
-    status: "healthy", 
+app.get("/api/health", (_req, res) => {
+  res.json({
+    status: "healthy",
     timestamp: new Date().toISOString(),
     mongodb: mongoose.connection.readyState === 1 ? "connected" : "disconnected",
-    mode: MONGO_URI ? "database" : "demo"
+    mode: process.env.MONGO_URI ? "database" : "demo",
   });
 });
 
-// --- Routes ---
-// ENABLED: Auth routes for user data storage in database
-app.use("/api/auth", require("./routes/auth"));
+app.use("/api/auth", async (_req, res, next) => {
+  try {
+    await connectDatabase();
+    next();
+  } catch (error) {
+    console.error("MongoDB connection failed:", error.message);
+    res.status(503).json({ msg: "Database unavailable. Check the deployment MONGO_URI setting." });
+  }
+}, require("./routes/auth"));
 
-// Add this line for product routes
-app.use('/api/products', require('./routes/products'));
+app.use("/api/products", require("./routes/products"));
+app.use("/api/ai", require("./routes/ai"));
 
-// Add AI routes for Gemini API
-app.use('/api/ai', require('./routes/ai'));
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
 
-// --- Start server ---
-app.listen(PORT, () => {
- dbConnect();
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+module.exports = app;
