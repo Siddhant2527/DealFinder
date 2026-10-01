@@ -6,6 +6,9 @@
   "functions": {
     "api/[...path].js": {
       "maxDuration": 30
+    },
+    "api/products/scrape.js": {
+      "maxDuration": 60
     }
   }
 }
