@@ -2,5 +2,10 @@
   "framework": "vite",
   "installCommand": "npm install && npm --prefix server install",
   "buildCommand": "npm run build",
-  "outputDirectory": "dist"
+  "outputDirectory": "dist",
+  "functions": {
+    "api/[...path].js": {
+      "maxDuration": 30
+    }
+  }
 }

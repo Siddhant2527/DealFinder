@@ -5,8 +5,18 @@ const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
 const IGNORE_QUERY_WORDS = new Set(['best', 'deal', 'price', 'prices', 'search', 'buy', 'online', 'india', 'in']);
 const MODEL_VARIANTS = new Set(['mini', 'pro', 'plus', 'max', 'ultra', 'fe', 'fold', 'flip', 'lite']);
 const ELECTRONICS_QUERY = /\b(phone|smartphone|iphone|ipad|tablet|mobile|galaxy|pixel|laptop|notebook|macbook|computer|pc|desktop|tv|television|smart\s*tv|headphones?|earbuds?|earphones?|airpods?|buds|speaker|soundbar|camera|mirrorless|dslr|smartwatch|watch|console|playstation|ps[345]|xbox|nintendo|gaming|monitor|projector|graphics?\s*card|gpu|rtx|gtx|radeon|processor|cpu|ryzen|kindle|e-?reader|drone|vr\s*headset|wh-\d{4}|samsung\s+(?:[a-z]?\d|z\s*(?:flip|fold)))\b/i;
-const ELECTRONICS_PRODUCT = /\b(phone|smartphone|iphone|ipad|tablet|mobile|galaxy|pixel|laptop|notebook|macbook|computer|desktop|tv|television|smart\s*tv|headphones?|earbuds?|earphones?|airpods?|buds|speaker|soundbar|camera|mirrorless|dslr|smartwatch|playstation|ps[345]|xbox|nintendo|gaming\s*console|monitor|projector|graphics?\s*card|gpu|rtx|gtx|radeon|processor|router|printer|kindle|e-?reader|drone|vr\s*headset|wh-\d{4})\b/i;
+const ELECTRONICS_PRODUCT = /\b(phone|smartphone|iphone|ipad|tablet|mobile|galaxy|pixel|laptop|notebook|macbook|computer|desktop|tv|television|smart\s*tv|headphones?|earbuds?|earphones?|airpods?|buds|speaker|soundbar|camera|mirrorless|dslr|smartwatch|watch|fitness\s*(?:band|tracker)|smart\s*band|playstation|ps[345]|xbox|nintendo|gaming\s*console|monitor|projector|graphics?\s*card|gpu|rtx|gtx|radeon|processor|router|printer|kindle|e-?reader|drone|vr\s*headset|wh-\d{4})\b/i;
 const ACCESSORY_PRODUCT = /\b(case|cover|screen protector|tempered glass|charger|charging cable|usb cable|adapter|stand|mount|replacement battery|protective film|sleeve|skin)\b/i;
+const CATEGORY_SEARCHES = [
+  { pattern: /\b(phone|smartphone|mobile|iphone|galaxy|pixel)\b/i, queries: ['phone', 'phones', 'smartphone', 'smartphones', 'mobile', 'mobiles'], expression: /\b(phone|smartphone|iphone|mobile|galaxy|pixel)\b/i },
+  { pattern: /\b(tablet|ipad)\b/i, queries: ['tablet', 'tablets'], expression: /\b(tablet|ipad)\b/i },
+  { pattern: /\b(laptop|notebook|macbook|computer)\b/i, queries: ['laptop', 'laptops', 'notebook', 'notebooks', 'computer', 'computers'], expression: /\b(laptop|notebook|macbook|computer|desktop)\b/i },
+  { pattern: /\b(tv|television|monitor)\b/i, queries: ['tv', 'tvs', 'television', 'televisions', 'monitor', 'monitors'], expression: /\b(tv|television|monitor)\b/i },
+  { pattern: /\b(headphones?|earbuds?|earphones?|airpods?|buds|speaker|soundbar)\b/i, queries: ['audio', 'headphone', 'headphones', 'earbud', 'earbuds', 'earphone', 'earphones', 'speaker', 'speakers'], expression: /\b(headphones?|earbuds?|earphones?|airpods?|buds|speaker|soundbar)\b/i },
+  { pattern: /\b(camera|mirrorless|dslr)\b/i, queries: ['camera', 'cameras', 'photography'], expression: /\b(camera|mirrorless|dslr)\b/i },
+  { pattern: /\b(watch|smartwatch|fitness\s*(?:band|tracker)|smart\s*band)\b/i, queries: ['wearable', 'wearables', 'watch', 'watches', 'smartwatch', 'smartwatches', 'fitness band', 'fitness tracker'], expression: /\b(watch|smartwatch|fitness\s*(?:band|tracker)|smart\s*band)\b/i },
+  { pattern: /\b(console|playstation|ps[345]|xbox|nintendo|gaming)\b/i, queries: ['console', 'consoles', 'gaming', 'game console', 'game consoles'], expression: /\b(console|playstation|ps[345]|xbox|nintendo|gaming)\b/i },
+];
 const RETAILERS = [
   {
     name: 'Amazon',
@@ -78,12 +88,15 @@ function isElectronicsProduct(name) {
 }
 
 function matchesQuery(name, query) {
-  const queryWords = normalizeText(query)
+  const normalizedQuery = normalizeText(query);
+  const category = CATEGORY_SEARCHES.find(item => item.queries.includes(normalizedQuery));
+  const queryWords = normalizedQuery
     .split(/\s+/)
     .filter(word => word.length > 1 && !IGNORE_QUERY_WORDS.has(word));
   const productName = normalizeText(name).replace(/\s+/g, '');
   const requiredNumbers = queryWords.filter(word => /\d/.test(word));
   if (!requiredNumbers.every(word => productName.includes(word))) return false;
+  if (category && requiredNumbers.length === 0) return category.expression.test(name);
 
   if (requiredNumbers.length) {
     const productWords = normalizeText(name).split(/\s+/);
