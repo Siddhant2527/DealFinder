@@ -1,3 +1,27 @@
+export const readApiResponse = async (response, serviceName = 'API') => {
+    const body = await response.text();
+    const contentType = response.headers.get('content-type') || '';
+
+    if (!contentType.toLowerCase().includes('application/json')) {
+        throw new Error(
+            `${serviceName} returned an unexpected response (HTTP ${response.status}). The Vercel API route may be unavailable or deployment-protected.`,
+        );
+    }
+
+    let data;
+    try {
+        data = JSON.parse(body);
+    } catch {
+        throw new Error(`${serviceName} returned invalid JSON (HTTP ${response.status}). Please try again later.`);
+    }
+
+    if (!response.ok) {
+        throw new Error(data.error || data.msg || `${serviceName} failed (HTTP ${response.status}).`);
+    }
+
+    return data;
+};
+
 export const callGeminiAPI = async (prompt) => {
     try {
         const response = await fetch('/api/ai/gemini', {
@@ -8,11 +32,7 @@ export const callGeminiAPI = async (prompt) => {
             body: JSON.stringify({ prompt })
         });
 
-        if (!response.ok) {
-            throw new Error(`API error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
+        const result = await readApiResponse(response, 'AI assistant');
         
         if (result.success) {
             return result.response;
@@ -354,9 +374,6 @@ export const mockAuth = async (username, password) => {
 
 export const searchProductsAPI = async (query) => {
     const response = await fetch(`/api/products/scrape?query=${encodeURIComponent(query)}`);
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data = await response.json();
+    const data = await readApiResponse(response, 'Product search');
     return Array.isArray(data.results) ? data.results : [];
 };

@@ -30,6 +30,7 @@ import CartModal from '../components/CartModal';
 import AIChat from '../components/AIChat';
 import ProfilePage from './ProfilePage';
 import { useCart } from '../contexts/CartContext';
+import { readApiResponse } from '../utils/api';
 
 const categories = [
     { name: 'Phones', query: 'smartphone', Icon: Smartphone, detail: 'iPhone, Samsung & more', color: 'bg-blue-50 text-blue-700' },
@@ -92,8 +93,7 @@ const HomePage = () => {
 
         try {
             const response = await fetch(`/api/products/scrape?query=${encodeURIComponent(query)}`);
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Live product search failed.');
+            const data = await readApiResponse(response, 'Product search');
             setSearchResults(Array.isArray(data.results) ? data.results : []);
             setRetailerStatuses(Array.isArray(data.retailers) ? data.retailers : []);
             setLastUpdated(data.updatedAt ? new Date(data.updatedAt) : new Date());

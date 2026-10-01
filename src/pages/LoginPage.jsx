@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Tag, Eye, EyeOff, Loader2, Shield, User, Lock, Database, CheckCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
-import { mockAuth } from '../utils/api.js';
+import { mockAuth, readApiResponse } from '../utils/api.js';
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
@@ -28,7 +28,7 @@ const LoginPage = () => {
   const checkDatabaseStatus = async () => {
     try {
       const response = await fetch('/api/health');
-      const data = await response.json();
+      const data = await readApiResponse(response, 'Database health check');
       setDatabaseStatus(data.mongodb === 'connected' ? 'connected' : 'disconnected');
     } catch {
       setDatabaseStatus('disconnected');

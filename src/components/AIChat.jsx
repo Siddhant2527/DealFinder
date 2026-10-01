@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Loader2, MessageCircle } from 'lucide-react';
+import { readApiResponse } from '../utils/api';
 
 const AIChat = ({ isOpen, onClose }) => {
     const [messages, setMessages] = useState([
@@ -47,11 +48,7 @@ const AIChat = ({ isOpen, onClose }) => {
                 })
             });
 
-            if (!response.ok) {
-                throw new Error('Failed to get AI response');
-            }
-
-            const result = await response.json();
+            const result = await readApiResponse(response, 'AI assistant');
             
             const aiMessage = {
                 id: Date.now() + 1,
